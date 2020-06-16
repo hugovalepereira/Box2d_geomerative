@@ -117,7 +117,7 @@ class AnatomicPart {
 
 
 
-  private ArrayList<RShape> getSubShapes(RShape shp){
+  private ArrayList<RShape> getSubShapes(RShape shp){ // função recurssiva para dividir a forma em formas mais pequenas para serem tratadas pela BOX2D
     ArrayList<RShape> result = new ArrayList<RShape>();
 
     if(shp.getPoints().length > 5){
@@ -185,6 +185,6 @@ RShape [] divide(RShape shp){
   new1.draw();
   fill(255,255,0);
   new2.draw();
-  return null;
+  return null;    // esta função utiliza a RMesh para dividir a forma na zona central
 
 }
