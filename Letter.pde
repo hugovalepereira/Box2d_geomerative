@@ -2,44 +2,35 @@ class Letter {
 
 
   ArrayList<AnatomicPart> parts;
+
   RShape shp;
+  RShape [] shpParts;
 
   Letter() {
     parts= new ArrayList<AnatomicPart>();
-    shp= new RPolygon();
+    RG.setPolygonizer(RG.ADAPTATIVE);
+    shp= RG.loadShape("i.svg");
 
+    shp.centerIn(g,100);
 
-    shp.addPoint(20,20);
-    shp.addPoint(40,20);
-    shp.addPoint(20,50);
-    shp.addClose();
+    shpParts = shp.children;
 
-    for(RPoint rp : shp.getPoints()){
-      fill(200,0,0);
-      ellipse(rp.x,rp.y,3,3);
+    for(RShape ap: shpParts){
+      parts.add(new AnatomicPart(ap));
 
     }
 
   }
 
   void display(){
-    translate(68,89);
-    noStroke();
-    RPolygon [] s= new RPolygon[1];
-    s[0] = shp.intersection(RPolygon.createRectangle(0,0,50,100));
-    s[1] = shp.intersection(RPolygon.createRectangle(0,-100,50,100));
-    s[2] = shp.intersection(RPolygon.createRectangle(-50,-100,50,100));
-  //  s[3] = RG.intersection(shp, RShape.createRectangle(-50,0,50,100));
-    s[3]= shp.intersection(RPolygon.createRectangle(-50,0,50,100));
-    for(RPolygon sh : s){
-      fill(random(255));
-      noStroke();
-      shp.draw();
-      sh.draw();
-      //println(sh.getPoints().length);
-
+    pushMatrix();
+    translate(width*0.5,height *0.5);
+    //shp.draw();
+    for(AnatomicPart ap : parts){
+      ap.display();
     }
 
-
+    popMatrix();
   }
+
 }
