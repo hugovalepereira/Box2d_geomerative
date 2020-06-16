@@ -11,7 +11,7 @@ class Letter {
     RG.setPolygonizer(RG.ADAPTATIVE);
     shp= RG.loadShape("p.svg");
 
-    shp.centerIn(g,100);
+    shp.centerIn(g,200);
 
     shpParts = shp.children;
 
@@ -23,22 +23,38 @@ class Letter {
   }
 
   void display(){
-    pushMatrix();
-    translate(width*0.5,height *0.5);
+
+    //translate(width*0.5,height *0.5);
     //shp.draw();
     for(AnatomicPart ap : parts){
       ap.display();
+
     }
 
-    popMatrix();
+
   }
 
 
   void shake(){
     for(AnatomicPart ap : parts){
       ap.shake();
+      println(ap);
     }
 
-
   }
+
+
+  void reconnect(){
+    for(AnatomicPart ap : parts){
+      if(random(1)<0.4){
+        AnatomicPart fr= parts.get(int(random(parts.size())));
+        if(fr!=ap) {
+          ap.connect(fr);
+
+        }
+      }
+    }
+  }
+
+
 }

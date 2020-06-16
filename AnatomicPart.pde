@@ -65,7 +65,7 @@ class AnatomicPart {
 
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
-    bd.position.set(box2d.coordPixelsToWorld(0, 0));
+    bd.position.set(box2d.coordPixelsToWorld( width/2 , height/2));
     body = box2d.createBody(bd);
 
 
@@ -82,6 +82,8 @@ class AnatomicPart {
 
 
       vertices[i] = box2d.coordPixelsToWorld(this.box[i].x ,this.box[i].y );
+      //vertices[i] = box2d.coordPixelsToWorld(this.box[i].x - this.partShp.getCentroid().x,this.box[i].y - this.partShp.getCentroid().y);
+
 
     }
 
@@ -118,15 +120,12 @@ class AnatomicPart {
     rotate(-a);
 
     //displayLeading();
-
-
     fill(255);
     noStroke();
     partShp.draw();
 
-
     //displayHandles();
-    displayJoinningPoints();
+    //displayJoinningPoints();
     popMatrix();
   }
 
@@ -170,7 +169,12 @@ class AnatomicPart {
     djd.bodyB = friend.body;
     //djd.localAnchorA.set(random(width),random(height));
     //djd.localAnchorB.set(random(width),random(height));
-    //djd.initialize(this.body,friend.body,box2d.coordPixelsToWorld(points.get(0)),box2d.coordPixelsToWorld(points.get(1)));
+
+    RPoint joint1 = this.joinningPoints.get( int( random( this.joinningPoints.size() ) ) );
+    println("abc");
+    println(joint1.x+300,joint1.y+300);
+    RPoint joint2 = friend.joinningPoints.get( int( random( friend.joinningPoints.size() ) ) );
+    djd.initialize(this.body,friend.body,box2d.coordPixelsToWorld(joint1.x+300,joint1.y+300), box2d.coordPixelsToWorld(joint2.x+300,joint2.y+300));
     djd.length = box2d.scalarPixelsToWorld(0);
 
     djd.collideConnected=false;
@@ -180,11 +184,20 @@ class AnatomicPart {
     //djd.dampingRatio = 0.5;
 
     DistanceJoint dj = (DistanceJoint) box2d.world.createJoint(djd);
+
   }
 
 
   void shake(){
-    body.setTransform(box2d.coordPixelsToWorld(random(-width*0.1,width*0.1),random(-height*0.1,height*0.1)),int(random(8))*TAU/8);
+    body.setTransform(box2d.coordPixelsToWorld(random(300,width-300),random(300,height-300)),int(random(8))*TAU/8);
+  }
+
+  void follow(){
+    body.setTransform(box2d.coordPixelsToWorld(new Vec2 (mouseX,mouseY)),int(random(8))*TAU/8);
+
+    //println(mouseX,mouseY);
+    Vec2 v = box2d.coordPixelsToWorld(new Vec2 (mouseX,mouseY));
+    //println(v.x,v.y);
   }
 
 
@@ -213,12 +226,16 @@ class AnatomicPart {
   }
 
 
+  String toString(){
+    return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
 
+
+  }
 
 }
 
 
-
+/*
 RShape [] divide(RShape shp){
   RMesh mesh = shp.toMesh();
   RPoint [] meshPoints= mesh.getPoints();
@@ -259,3 +276,4 @@ RShape [] divide(RShape shp){
   return null;    // esta função utiliza a RMesh para dividir a forma na zona central
 
 }
+*/

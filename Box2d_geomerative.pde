@@ -16,14 +16,14 @@ Letter letter;
 
 
 
-
+AnatomicPart rato;
 
 Box2DProcessing box2d;
 
 void setup(){
 
   size(600,600);
-  pixelDensity(2);
+  //pixelDensity(2);
 
   RG.init(this);
   RG.setPolygonizer(RG.ADAPTATIVE);
@@ -31,13 +31,15 @@ void setup(){
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
   box2d.setGravity(0,0);
-  //box2d.setWarmStarting(true);
+
 
 
 
   letter= new Letter();
 
+  RShape u = RG.getEllipse(0,0,20,20);
 
+  rato = new AnatomicPart(u);
 
 
 }
@@ -52,7 +54,8 @@ void draw(){
 
 
   letter.display();
-
+  rato.follow();
+  rato.display();
 
 
   //println(frameRate);
@@ -64,7 +67,11 @@ void draw(){
 
 
 void mousePressed(){
-
-
   letter.shake();
+}
+
+
+void keyPressed(){
+  letter.reconnect();
+
 }

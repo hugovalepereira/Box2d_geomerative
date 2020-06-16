@@ -42,14 +42,14 @@ Letter letter;
 
 
 
-
+AnatomicPart rato;
 
 Box2DProcessing box2d;
 
 public void setup(){
 
   
-  
+  //pixelDensity(2);
 
   RG.init(this);
   RG.setPolygonizer(RG.ADAPTATIVE);
@@ -57,13 +57,15 @@ public void setup(){
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
   box2d.setGravity(0,0);
-  //box2d.setWarmStarting(true);
+
 
 
 
   letter= new Letter();
 
+  RShape u = RG.getEllipse(0,0,20,20);
 
+  rato = new AnatomicPart(u);
 
 
 }
@@ -78,7 +80,8 @@ public void draw(){
 
 
   letter.display();
-
+  rato.follow();
+  rato.display();
 
 
   //println(frameRate);
@@ -90,9 +93,13 @@ public void draw(){
 
 
 public void mousePressed(){
-
-
   letter.shake();
+}
+
+
+public void keyPressed(){
+  letter.reconnect();
+
 }
 class AnatomicPart {
 
@@ -161,7 +168,7 @@ class AnatomicPart {
 
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
-    bd.position.set(box2d.coordPixelsToWorld(0, 0));
+    bd.position.set(box2d.coordPixelsToWorld( width/2 , height/2));
     body = box2d.createBody(bd);
 
 
@@ -178,6 +185,8 @@ class AnatomicPart {
 
 
       vertices[i] = box2d.coordPixelsToWorld(this.box[i].x ,this.box[i].y );
+      //vertices[i] = box2d.coordPixelsToWorld(this.box[i].x - this.partShp.getCentroid().x,this.box[i].y - this.partShp.getCentroid().y);
+
 
     }
 
@@ -214,15 +223,12 @@ class AnatomicPart {
     rotate(-a);
 
     //displayLeading();
-
-
     fill(255);
     noStroke();
     partShp.draw();
 
-
     //displayHandles();
-    displayJoinningPoints();
+    //displayJoinningPoints();
     popMatrix();
   }
 
@@ -266,7 +272,12 @@ class AnatomicPart {
     djd.bodyB = friend.body;
     //djd.localAnchorA.set(random(width),random(height));
     //djd.localAnchorB.set(random(width),random(height));
-    //djd.initialize(this.body,friend.body,box2d.coordPixelsToWorld(points.get(0)),box2d.coordPixelsToWorld(points.get(1)));
+
+    RPoint joint1 = this.joinningPoints.get( PApplet.parseInt( random( this.joinningPoints.size() ) ) );
+    println("abc");
+    println(joint1.x+300,joint1.y+300);
+    RPoint joint2 = friend.joinningPoints.get( PApplet.parseInt( random( friend.joinningPoints.size() ) ) );
+    djd.initialize(this.body,friend.body,box2d.coordPixelsToWorld(joint1.x+300,joint1.y+300), box2d.coordPixelsToWorld(joint2.x+300,joint2.y+300));
     djd.length = box2d.scalarPixelsToWorld(0);
 
     djd.collideConnected=false;
@@ -276,13 +287,20 @@ class AnatomicPart {
     //djd.dampingRatio = 0.5;
 
     DistanceJoint dj = (DistanceJoint) box2d.world.createJoint(djd);
+
   }
 
 
   public void shake(){
-    body.setTransform(box2d.coordPixelsToWorld(random(-width*0.1f,width*0.1f),random(-height*0.1f,height*0.1f)),PApplet.parseInt(random(8))*TAU/8);
+    body.setTransform(box2d.coordPixelsToWorld(random(300,width-300),random(300,height-300)),PApplet.parseInt(random(8))*TAU/8);
+  }
 
+  public void follow(){
+    body.setTransform(box2d.coordPixelsToWorld(new Vec2 (mouseX,mouseY)),PApplet.parseInt(random(8))*TAU/8);
 
+    //println(mouseX,mouseY);
+    Vec2 v = box2d.coordPixelsToWorld(new Vec2 (mouseX,mouseY));
+    //println(v.x,v.y);
   }
 
 
@@ -311,17 +329,21 @@ class AnatomicPart {
   }
 
 
+  public String toString(){
+    return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
 
+
+  }
 
 }
 
 
-
-public RShape [] divide(RShape shp){
+/*
+RShape [] divide(RShape shp){
   RMesh mesh = shp.toMesh();
   RPoint [] meshPoints= mesh.getPoints();
 
-  int middlePoint = PApplet.parseInt(meshPoints.length/2)-1;
+  int middlePoint = int(meshPoints.length/2)-1;
   RPoint [] subPoints1 = (RPoint[])subset(meshPoints,0,middlePoint+2);
   RPoint [] subPoints2 = (RPoint[])subset(meshPoints,middlePoint);
 
@@ -357,6 +379,7 @@ public RShape [] divide(RShape shp){
   return null;    // esta função utiliza a RMesh para dividir a forma na zona central
 
 }
+*/
 class Boundary {
 
   // A boundary is a simple rectangle with x,y,width,and height
@@ -415,7 +438,7 @@ class Letter {
     RG.setPolygonizer(RG.ADAPTATIVE);
     shp= RG.loadShape("p.svg");
 
-    shp.centerIn(g,100);
+    shp.centerIn(g,200);
 
     shpParts = shp.children;
 
@@ -427,26 +450,42 @@ class Letter {
   }
 
   public void display(){
-    pushMatrix();
-    translate(width*0.5f,height *0.5f);
+
+    //translate(width*0.5,height *0.5);
     //shp.draw();
     for(AnatomicPart ap : parts){
       ap.display();
+
     }
 
-    popMatrix();
+
   }
 
 
   public void shake(){
     for(AnatomicPart ap : parts){
       ap.shake();
+      println(ap);
     }
 
-
   }
+
+
+  public void reconnect(){
+    for(AnatomicPart ap : parts){
+      if(random(1)<0.4f){
+        AnatomicPart fr= parts.get(PApplet.parseInt(random(parts.size())));
+        if(fr!=ap) {
+          ap.connect(fr);
+
+        }
+      }
+    }
+  }
+
+
 }
-  public void settings() {  size(600,600);  pixelDensity(2); }
+  public void settings() {  size(600,600); }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "Box2d_geomerative" };
     if (passedArgs != null) {
