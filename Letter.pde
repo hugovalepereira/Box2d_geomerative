@@ -9,7 +9,7 @@ class Letter {
   Letter() {
     parts= new ArrayList<AnatomicPart>();
     RG.setPolygonizer(RG.ADAPTATIVE);
-    shp= RG.loadShape("i.svg");
+    shp= RG.loadShape("p.svg");
 
     shp.centerIn(g,100);
 
@@ -33,4 +33,12 @@ class Letter {
     popMatrix();
   }
 
+
+  void shake(){
+    for(AnatomicPart ap : parts){
+      ap.shake();
+    }
+
+
+  }
 }

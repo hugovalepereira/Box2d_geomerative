@@ -40,7 +40,7 @@ public class Box2d_geomerative extends PApplet {
 
 Letter letter;
 
-AnatomicPart ap;
+
 
 
 
@@ -56,49 +56,28 @@ public void setup(){
 
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
-  box2d.setGravity(0,-1);
+  box2d.setGravity(0,0);
+  //box2d.setWarmStarting(true);
+
+
+
+  letter= new Letter();
 
 
 
 
-  //letter= new Letter();
-  RShape i = RG.loadShape("p.svg");
-
-  i.centerIn(g,40);
-
-  translate(width/2,height/2);
-  //i.draw();
-  //ap = new AnatomicPart( i.children[0] );
-  fill(0);
-  i.children[0].draw();
-
-  RMesh m = i.children[0].toMesh();
-  int count =0;
-  for(RPoint rp: m.getPoints()){
-    // fill(random(255),random(255),random(255));
-    // text(count++,rp.x+random(20),rp.y);
-    // noStroke();
-    // ellipse(rp.x,rp.y,5,5);
-    //println(rp.x,rp.y);
-
-  }
-  RPoint rp= i.children[0].getCentroid();
-  ellipse(rp.x,rp.y,5,5);
-
-
-
-  divide(i.children[0]);
 }
 
 
 
 public void draw(){
-  //background(100);
-          //box2d.step();
+  background(0);
+  //translate(width/2,height/2);
+  box2d.step();
 
 
 
-          //ap.display();
+  letter.display();
 
 
 
@@ -108,12 +87,22 @@ public void draw(){
 
 
 }
+
+
+public void mousePressed(){
+
+
+  letter.shake();
+}
 class AnatomicPart {
 
   float x, y;
 
   RShape partShp;
-  ArrayList<RShape> subShps;
+  RPoint [] box;
+
+
+  ArrayList<RPoint> joinningPoints;
 
   Body body;
 
@@ -143,44 +132,44 @@ class AnatomicPart {
   AnatomicPart(RShape partShp) {
     this.partShp=partShp;
 
-    this.subShps=getSubShapes(partShp);
+    this.box = partShp.getBoundsPoints();
 
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
     bd.position.set(box2d.coordPixelsToWorld(0, 0));
     body = box2d.createBody(bd);
 
-
-
-
-
     int count = 0;
-    for(RShape rs : this.subShps){
 
-      println("a subforma "+ count++ +" tem "+rs.getPoints().length+ " pontos");
-
-      PolygonShape sd = new PolygonShape();
-      RPoint [] points = rs.getPoints();
-
-      Vec2 [] vertices = new Vec2[points.length];
-
-      fill(random(255),random(255),0);
-      beginShape();
-      for( int i = 0 ; i < vertices.length; i++){
-
-
-        vertices[i] = box2d.vectorPixelsToWorld(new Vec2( points[i].x , points[i].y ) );
-        vertex(vertices[i].x*20.0f+100,vertices[i].y*20.0f+100);
-      }
-      endShape();
-      println(vertices);
-
-      //sd.set(vertices, vertices.length);
+    PolygonShape sd = new PolygonShape();
 
 
 
-      //body.createFixture(sd, 1.0);
+
+    Vec2[] vertices = new Vec2[4];
+
+
+    for( int i = 0 ; i < vertices.length; i++){
+
+
+      vertices[i] = box2d.coordPixelsToWorld(this.box[i].x ,this.box[i].y );
+
     }
+
+
+    sd.set(vertices, vertices.length);
+
+
+    // Define a fixture
+    FixtureDef fd = new FixtureDef();
+    fd.shape = sd;
+    // Parameters that affect physics
+    fd.density = 1;
+    fd.friction = 0;
+    fd.restitution = 0;
+    fd.filter.groupIndex = -2; // coloca todas as partes anatómicas na mesma "camada". E, por ser negativa, não colidem umas com as outras
+    body.createFixture(fd);
+
 
 
 
@@ -198,25 +187,38 @@ class AnatomicPart {
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(-a);
+
+    //displayLeading();
+
     fill(255);
-    //partShp.draw();
+    noStroke();
+    partShp.draw();
 
     popMatrix();
   }
 
 
+  private void displayLeading(){
+    noStroke();
+    fill(255,100);
+    beginShape();
+    for(RPoint p : box){
+      vertex(p.x,p.y);
+    }
+    endShape();
 
+  }
 
   public void connect(AnatomicPart friend){
     DistanceJointDef djd = new DistanceJointDef();
     djd.bodyA = this.body;
     djd.bodyB = friend.body;
-    djd.localAnchorA.set(random(width),random(height));
-    djd.localAnchorB.set(random(width),random(height));
+    //djd.localAnchorA.set(random(width),random(height));
+    //djd.localAnchorB.set(random(width),random(height));
     //djd.initialize(this.body,friend.body,box2d.coordPixelsToWorld(points.get(0)),box2d.coordPixelsToWorld(points.get(1)));
     djd.length = box2d.scalarPixelsToWorld(0);
-    println(djd);
-    djd.collideConnected=true;
+
+    djd.collideConnected=false;
 
 
     //djd.frequencyHz = 4.0;
@@ -226,8 +228,14 @@ class AnatomicPart {
   }
 
 
+  public void shake(){
+    body.setTransform(box2d.coordPixelsToWorld(random(-width*0.1f,width*0.1f),random(-height*0.1f,height*0.1f)),random(TAU));
 
-  private ArrayList<RShape> getSubShapes(RShape shp){
+
+  }
+
+
+  private ArrayList<RShape> getSubShapes(RShape shp){ // função recurssiva para dividir a forma em formas mais pequenas para serem tratadas pela BOX2D
     ArrayList<RShape> result = new ArrayList<RShape>();
 
     if(shp.getPoints().length > 5){
@@ -295,7 +303,52 @@ public RShape [] divide(RShape shp){
   new1.draw();
   fill(255,255,0);
   new2.draw();
-  return null;
+  return null;    // esta função utiliza a RMesh para dividir a forma na zona central
+
+}
+class Boundary {
+
+  // A boundary is a simple rectangle with x,y,width,and height
+  float x;
+  float y;
+  float w;
+  float h;
+
+  // But we also have to make a body for box2d to know about it
+  Body b;
+
+  Boundary(float x_,float y_, float w_, float h_) {
+    x = x_;
+    y = y_;
+    w = w_;
+    h = h_;
+
+    // Define the polygon
+    PolygonShape sd = new PolygonShape();
+    // Figure out the box2d coordinates
+    float box2dW = box2d.scalarPixelsToWorld(w/2);
+    float box2dH = box2d.scalarPixelsToWorld(h/2);
+    // We're just a box
+    sd.setAsBox(box2dW, box2dH);
+
+
+    // Create the body
+    BodyDef bd = new BodyDef();
+    bd.type = BodyType.KINEMATIC;
+    bd.position.set(box2d.coordPixelsToWorld(x,y));
+    b = box2d.createBody(bd);
+
+    // Attached the shape to the body using a Fixture
+    b.createFixture(sd,1);
+  }
+
+  // Draw the boundary, if it were at an angle we'd have to do something fancier
+  public void display() {
+    fill(0);
+    stroke(0);
+    rectMode(CENTER);
+    rect(x,y,w,h);
+  }
 
 }
 class Letter {
@@ -309,7 +362,7 @@ class Letter {
   Letter() {
     parts= new ArrayList<AnatomicPart>();
     RG.setPolygonizer(RG.ADAPTATIVE);
-    shp= RG.loadShape("i.svg");
+    shp= RG.loadShape("p.svg");
 
     shp.centerIn(g,100);
 
@@ -333,6 +386,14 @@ class Letter {
     popMatrix();
   }
 
+
+  public void shake(){
+    for(AnatomicPart ap : parts){
+      ap.shake();
+    }
+
+
+  }
 }
   public void settings() {  size(600,600);  pixelDensity(2); }
   static public void main(String[] passedArgs) {

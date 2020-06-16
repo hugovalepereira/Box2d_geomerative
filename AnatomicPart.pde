@@ -3,7 +3,10 @@ class AnatomicPart {
   float x, y;
 
   RShape partShp;
-  ArrayList<RShape> subShps;
+  RPoint [] box;
+
+
+  ArrayList<RPoint> joinningPoints;
 
   Body body;
 
@@ -33,44 +36,44 @@ class AnatomicPart {
   AnatomicPart(RShape partShp) {
     this.partShp=partShp;
 
-    this.subShps=getSubShapes(partShp);
+    this.box = partShp.getBoundsPoints();
 
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
     bd.position.set(box2d.coordPixelsToWorld(0, 0));
     body = box2d.createBody(bd);
 
-
-
-
-
     int count = 0;
-    for(RShape rs : this.subShps){
 
-      println("a subforma "+ count++ +" tem "+rs.getPoints().length+ " pontos");
-
-      PolygonShape sd = new PolygonShape();
-      RPoint [] points = rs.getPoints();
-
-      Vec2 [] vertices = new Vec2[points.length];
-
-      fill(random(255),random(255),0);
-      beginShape();
-      for( int i = 0 ; i < vertices.length; i++){
-
-
-        vertices[i] = box2d.vectorPixelsToWorld(new Vec2( points[i].x , points[i].y ) );
-        vertex(vertices[i].x*20.0+100,vertices[i].y*20.0+100);
-      }
-      endShape();
-      println(vertices);
-
-      //sd.set(vertices, vertices.length);
+    PolygonShape sd = new PolygonShape();
 
 
 
-      //body.createFixture(sd, 1.0);
+
+    Vec2[] vertices = new Vec2[4];
+
+
+    for( int i = 0 ; i < vertices.length; i++){
+
+
+      vertices[i] = box2d.coordPixelsToWorld(this.box[i].x ,this.box[i].y );
+
     }
+
+
+    sd.set(vertices, vertices.length);
+
+
+    // Define a fixture
+    FixtureDef fd = new FixtureDef();
+    fd.shape = sd;
+    // Parameters that affect physics
+    fd.density = 1;
+    fd.friction = 0;
+    fd.restitution = 0;
+    fd.filter.groupIndex = -2; // coloca todas as partes anatómicas na mesma "camada". E, por ser negativa, não colidem umas com as outras
+    body.createFixture(fd);
+
 
 
 
@@ -88,25 +91,38 @@ class AnatomicPart {
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(-a);
+
+    //displayLeading();
+
     fill(255);
-    //partShp.draw();
+    noStroke();
+    partShp.draw();
 
     popMatrix();
   }
 
 
+  private void displayLeading(){
+    noStroke();
+    fill(255,100);
+    beginShape();
+    for(RPoint p : box){
+      vertex(p.x,p.y);
+    }
+    endShape();
 
+  }
 
   void connect(AnatomicPart friend){
     DistanceJointDef djd = new DistanceJointDef();
     djd.bodyA = this.body;
     djd.bodyB = friend.body;
-    djd.localAnchorA.set(random(width),random(height));
-    djd.localAnchorB.set(random(width),random(height));
+    //djd.localAnchorA.set(random(width),random(height));
+    //djd.localAnchorB.set(random(width),random(height));
     //djd.initialize(this.body,friend.body,box2d.coordPixelsToWorld(points.get(0)),box2d.coordPixelsToWorld(points.get(1)));
     djd.length = box2d.scalarPixelsToWorld(0);
-    println(djd);
-    djd.collideConnected=true;
+
+    djd.collideConnected=false;
 
 
     //djd.frequencyHz = 4.0;
@@ -115,6 +131,12 @@ class AnatomicPart {
     DistanceJoint dj = (DistanceJoint) box2d.world.createJoint(djd);
   }
 
+
+  void shake(){
+    body.setTransform(box2d.coordPixelsToWorld(random(-width*0.1,width*0.1),random(-height*0.1,height*0.1)),random(TAU));
+
+
+  }
 
 
   private ArrayList<RShape> getSubShapes(RShape shp){ // função recurssiva para dividir a forma em formas mais pequenas para serem tratadas pela BOX2D
