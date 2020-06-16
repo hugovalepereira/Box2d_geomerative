@@ -104,6 +104,10 @@ class AnatomicPart {
 
   ArrayList<RPoint> joinningPoints;
 
+  RPoint [] handles;
+
+  RPoint [][] handlesByPath;
+
   Body body;
 
   AnatomicPart(float x, float y) {
@@ -132,14 +136,35 @@ class AnatomicPart {
   AnatomicPart(RShape partShp) {
     this.partShp=partShp;
 
+    handles = this.partShp.getHandles();
+
+    RCommand [] r;
+
+    if(this.partShp.paths.length==1){
+      r = this.partShp.paths[0].commands;
+    } else {
+      r=null;
+      println("ERRO!!! Esta forma tem mais que um Path");
+    }
+
+    handlesByPath= new RPoint[r.length][];
+
+    for(int i = 0 ; i< r.length; i++){
+      handlesByPath[i] = r[i].getHandles();
+
+    }
+
     this.box = partShp.getBoundsPoints();
+    this.joinningPoints = new ArrayList<RPoint>();
+
+    loadJoinningPoints();
 
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
     bd.position.set(box2d.coordPixelsToWorld(0, 0));
     body = box2d.createBody(bd);
 
-    int count = 0;
+
 
     PolygonShape sd = new PolygonShape();
 
@@ -190,11 +215,37 @@ class AnatomicPart {
 
     //displayLeading();
 
+
     fill(255);
     noStroke();
     partShp.draw();
 
+
+    //displayHandles();
+    displayJoinningPoints();
     popMatrix();
+  }
+
+
+  private void displayHandles(){
+    for(RPoint p : handles){
+      fill(100);
+      ellipse(p.x,p.y,3,3);
+    }
+  }
+
+  private void displayJoinningPoints(){
+    for(RPoint p : joinningPoints){
+      ellipse(p.x,p.y,5,5);
+    }
+  }
+
+
+  private void loadJoinningPoints(){
+    for(RPoint path [] : handlesByPath){
+      joinningPoints.add(path[0]); // só funciona se as formas forem sempre fechadas
+      // path[path.length-1] //se não é preciso ir buscar o último ponto tb
+    }
   }
 
 
@@ -229,7 +280,7 @@ class AnatomicPart {
 
 
   public void shake(){
-    body.setTransform(box2d.coordPixelsToWorld(random(-width*0.1f,width*0.1f),random(-height*0.1f,height*0.1f)),random(TAU));
+    body.setTransform(box2d.coordPixelsToWorld(random(-width*0.1f,width*0.1f),random(-height*0.1f,height*0.1f)),PApplet.parseInt(random(8))*TAU/8);
 
 
   }
