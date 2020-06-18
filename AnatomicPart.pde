@@ -14,6 +14,7 @@ class AnatomicPart {
 
   Body body;
 
+  @Deprecated
   AnatomicPart(float x, float y) {
     this.x=x;
     this.y=y;
@@ -65,7 +66,14 @@ class AnatomicPart {
 
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
-    bd.position.set(box2d.coordPixelsToWorld( width/2 , height/2));
+    //bd.position.set(box2d.coordPixelsToWorld( width/2 - this.partShp.getCentroid().x, height/2- this.partShp.getCentroid().y));
+    bd.position.set(box2d.coordPixelsToWorld( width/2, height/2));
+/*  ^ [PROF. EVGHENI]
+    Penso que parte do problema está aqui porque na realidade a peça partShp,
+    não está no centro do ecrã. Apenas é desenhada com referência ao centro.
+    Acredito que é isto que depois deforma a rotação por causa da translação
+    do centro. Tentei solucionar com a linha a cima mas não foi suficiente.
+    */
     body = box2d.createBody(bd);
 
 
@@ -122,8 +130,9 @@ class AnatomicPart {
     //displayLeading();
     fill(255);
     noStroke();
+    //translate();
+    //RG.shape(partShp,this.partShp.getCentroid().x, this.partShp.getCentroid().y);
     partShp.draw();
-
     //displayHandles();
     //displayJoinningPoints();
     popMatrix();
@@ -225,6 +234,48 @@ class AnatomicPart {
     return result;
   }
 
+  /*
+  RShape [] divide(RShape shp){
+    RMesh mesh = shp.toMesh();
+    RPoint [] meshPoints= mesh.getPoints();
+
+    int middlePoint = int(meshPoints.length/2)-1;
+    RPoint [] subPoints1 = (RPoint[])subset(meshPoints,0,middlePoint+2);
+    RPoint [] subPoints2 = (RPoint[])subset(meshPoints,middlePoint);
+
+    RMesh new1 = new RMesh();
+
+    for(RPoint p : subPoints1){
+      new1.addPoint(p);
+
+      //print(p.x,p.y);
+      fill(255,0,0);
+      noStroke();
+      ellipse(p.x,p.y,5,5);
+    }
+    //println();
+
+    RMesh new2 = new RMesh();
+
+    for(RPoint p : subPoints2){
+      new2.addPoint(p);
+      //print(p.x,p.y);
+      fill(255,255,0);
+      noStroke();
+      ellipse(p.x,p.y,5,5);
+    }
+
+    fill(255,0,0);
+
+
+
+    new1.draw();
+    fill(255,255,0);
+    new2.draw();
+    return null;    // esta função utiliza a RMesh para dividir a forma na zona central
+
+  }
+  */
 
   String toString(){
     return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
@@ -233,47 +284,3 @@ class AnatomicPart {
   }
 
 }
-
-
-/*
-RShape [] divide(RShape shp){
-  RMesh mesh = shp.toMesh();
-  RPoint [] meshPoints= mesh.getPoints();
-
-  int middlePoint = int(meshPoints.length/2)-1;
-  RPoint [] subPoints1 = (RPoint[])subset(meshPoints,0,middlePoint+2);
-  RPoint [] subPoints2 = (RPoint[])subset(meshPoints,middlePoint);
-
-  RMesh new1 = new RMesh();
-
-  for(RPoint p : subPoints1){
-    new1.addPoint(p);
-
-    //print(p.x,p.y);
-    fill(255,0,0);
-    noStroke();
-    ellipse(p.x,p.y,5,5);
-  }
-  //println();
-
-  RMesh new2 = new RMesh();
-
-  for(RPoint p : subPoints2){
-    new2.addPoint(p);
-    //print(p.x,p.y);
-    fill(255,255,0);
-    noStroke();
-    ellipse(p.x,p.y,5,5);
-  }
-
-  fill(255,0,0);
-
-
-
-  new1.draw();
-  fill(255,255,0);
-  new2.draw();
-  return null;    // esta função utiliza a RMesh para dividir a forma na zona central
-
-}
-*/

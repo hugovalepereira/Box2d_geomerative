@@ -1,8 +1,5 @@
 import geomerative.*;
 
-
-
-
 import shiffman.box2d.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.joints.*;
@@ -20,6 +17,9 @@ AnatomicPart rato;
 
 Box2DProcessing box2d;
 
+
+
+int grav = 1; // 1 ou 0; os Joints só funcionam com gravidade
 void setup(){
 
   size(600,600);
@@ -30,7 +30,7 @@ void setup(){
 
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
-  box2d.setGravity(0,0);
+  box2d.setGravity(0,0.1*grav);
 
 
 
@@ -38,6 +38,7 @@ void setup(){
   letter= new Letter();
 
   RShape u = RG.getEllipse(0,0,20,20);
+  //println(u.getCentroid().x,u.getCentroid().y);
 
   rato = new AnatomicPart(u);
 
@@ -66,12 +67,13 @@ void draw(){
 }
 
 
-void mousePressed(){
-  letter.shake();
-}
+
 
 
 void keyPressed(){
-  letter.reconnect();
-
+  if(key=='r'|| key =='R'){
+    letter.reconnect();
+  } else if(key=='s'|| key =='S'){
+    letter.shake();
+  }
 }

@@ -46,6 +46,9 @@ AnatomicPart rato;
 
 Box2DProcessing box2d;
 
+
+
+int grav = 1; // 1 ou 0; os Joints só funcionam com gravidade
 public void setup(){
 
   
@@ -56,7 +59,7 @@ public void setup(){
 
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
-  box2d.setGravity(0,0);
+  box2d.setGravity(0,0.1f*grav);
 
 
 
@@ -64,6 +67,7 @@ public void setup(){
   letter= new Letter();
 
   RShape u = RG.getEllipse(0,0,20,20);
+  //println(u.getCentroid().x,u.getCentroid().y);
 
   rato = new AnatomicPart(u);
 
@@ -92,14 +96,15 @@ public void draw(){
 }
 
 
-public void mousePressed(){
-  letter.shake();
-}
+
 
 
 public void keyPressed(){
-  letter.reconnect();
-
+  if(key=='r'|| key =='R'){
+    letter.reconnect();
+  } else if(key=='s'|| key =='S'){
+    letter.shake();
+  }
 }
 class AnatomicPart {
 
@@ -117,6 +122,7 @@ class AnatomicPart {
 
   Body body;
 
+  @Deprecated
   AnatomicPart(float x, float y) {
     this.x=x;
     this.y=y;
@@ -168,7 +174,14 @@ class AnatomicPart {
 
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
-    bd.position.set(box2d.coordPixelsToWorld( width/2 , height/2));
+    //bd.position.set(box2d.coordPixelsToWorld( width/2 - this.partShp.getCentroid().x, height/2- this.partShp.getCentroid().y));
+    bd.position.set(box2d.coordPixelsToWorld( width/2, height/2));
+/*  ^ [PROF. EVGHENI]
+    Penso que parte do problema está aqui porque na realidade a peça partShp,
+    não está no centro do ecrã. Apenas é desenhada com referência ao centro.
+    Acredito que é isto que depois deforma a rotação por causa da translação
+    do centro. Tentei solucionar com a linha a cima mas não foi suficiente.
+    */
     body = box2d.createBody(bd);
 
 
@@ -225,8 +238,9 @@ class AnatomicPart {
     //displayLeading();
     fill(255);
     noStroke();
+    //translate();
+    //RG.shape(partShp,this.partShp.getCentroid().x, this.partShp.getCentroid().y);
     partShp.draw();
-
     //displayHandles();
     //displayJoinningPoints();
     popMatrix();
@@ -328,100 +342,53 @@ class AnatomicPart {
     return result;
   }
 
+  /*
+  RShape [] divide(RShape shp){
+    RMesh mesh = shp.toMesh();
+    RPoint [] meshPoints= mesh.getPoints();
+
+    int middlePoint = int(meshPoints.length/2)-1;
+    RPoint [] subPoints1 = (RPoint[])subset(meshPoints,0,middlePoint+2);
+    RPoint [] subPoints2 = (RPoint[])subset(meshPoints,middlePoint);
+
+    RMesh new1 = new RMesh();
+
+    for(RPoint p : subPoints1){
+      new1.addPoint(p);
+
+      //print(p.x,p.y);
+      fill(255,0,0);
+      noStroke();
+      ellipse(p.x,p.y,5,5);
+    }
+    //println();
+
+    RMesh new2 = new RMesh();
+
+    for(RPoint p : subPoints2){
+      new2.addPoint(p);
+      //print(p.x,p.y);
+      fill(255,255,0);
+      noStroke();
+      ellipse(p.x,p.y,5,5);
+    }
+
+    fill(255,0,0);
+
+
+
+    new1.draw();
+    fill(255,255,0);
+    new2.draw();
+    return null;    // esta função utiliza a RMesh para dividir a forma na zona central
+
+  }
+  */
 
   public String toString(){
     return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
 
 
-  }
-
-}
-
-
-/*
-RShape [] divide(RShape shp){
-  RMesh mesh = shp.toMesh();
-  RPoint [] meshPoints= mesh.getPoints();
-
-  int middlePoint = int(meshPoints.length/2)-1;
-  RPoint [] subPoints1 = (RPoint[])subset(meshPoints,0,middlePoint+2);
-  RPoint [] subPoints2 = (RPoint[])subset(meshPoints,middlePoint);
-
-  RMesh new1 = new RMesh();
-
-  for(RPoint p : subPoints1){
-    new1.addPoint(p);
-
-    //print(p.x,p.y);
-    fill(255,0,0);
-    noStroke();
-    ellipse(p.x,p.y,5,5);
-  }
-  //println();
-
-  RMesh new2 = new RMesh();
-
-  for(RPoint p : subPoints2){
-    new2.addPoint(p);
-    //print(p.x,p.y);
-    fill(255,255,0);
-    noStroke();
-    ellipse(p.x,p.y,5,5);
-  }
-
-  fill(255,0,0);
-
-
-
-  new1.draw();
-  fill(255,255,0);
-  new2.draw();
-  return null;    // esta função utiliza a RMesh para dividir a forma na zona central
-
-}
-*/
-class Boundary {
-
-  // A boundary is a simple rectangle with x,y,width,and height
-  float x;
-  float y;
-  float w;
-  float h;
-
-  // But we also have to make a body for box2d to know about it
-  Body b;
-
-  Boundary(float x_,float y_, float w_, float h_) {
-    x = x_;
-    y = y_;
-    w = w_;
-    h = h_;
-
-    // Define the polygon
-    PolygonShape sd = new PolygonShape();
-    // Figure out the box2d coordinates
-    float box2dW = box2d.scalarPixelsToWorld(w/2);
-    float box2dH = box2d.scalarPixelsToWorld(h/2);
-    // We're just a box
-    sd.setAsBox(box2dW, box2dH);
-
-
-    // Create the body
-    BodyDef bd = new BodyDef();
-    bd.type = BodyType.KINEMATIC;
-    bd.position.set(box2d.coordPixelsToWorld(x,y));
-    b = box2d.createBody(bd);
-
-    // Attached the shape to the body using a Fixture
-    b.createFixture(sd,1);
-  }
-
-  // Draw the boundary, if it were at an angle we'd have to do something fancier
-  public void display() {
-    fill(0);
-    stroke(0);
-    rectMode(CENTER);
-    rect(x,y,w,h);
   }
 
 }
