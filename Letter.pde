@@ -12,7 +12,7 @@ class Letter {
     shp= RG.loadShape("p.svg");
 
     shp.centerIn(g,200);
-
+    shp.translate(width*0.5,height*0.5);
     shpParts = shp.children;
 
     for(RShape ap: shpParts){
@@ -30,7 +30,10 @@ class Letter {
       ap.display();
 
     }
+    for(AnatomicPart ap : parts){
+      ap.showJoint();
 
+    }
 
   }
 

@@ -19,7 +19,7 @@ Box2DProcessing box2d;
 
 
 
-int grav = 1; // 1 ou 0; os Joints só funcionam com gravidade
+int grav = 0; // 1 ou 0; os Joints só funcionam com gravidade
 void setup(){
 
   size(600,600);
@@ -55,8 +55,8 @@ void draw(){
 
 
   letter.display();
-  rato.follow();
-  rato.display();
+  //rato.follow();
+  //rato.display();
 
 
   //println(frameRate);

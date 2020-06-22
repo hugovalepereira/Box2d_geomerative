@@ -5,7 +5,6 @@ class AnatomicPart {
   RShape partShp;
   RPoint [] box;
 
-
   ArrayList<RPoint> joinningPoints;
 
   RPoint [] handles;
@@ -13,6 +12,9 @@ class AnatomicPart {
   RPoint [][] handlesByPath;
 
   Body body;
+
+
+  DistanceJoint dj;
 
   @Deprecated
   AnatomicPart(float x, float y) {
@@ -67,13 +69,9 @@ class AnatomicPart {
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
     //bd.position.set(box2d.coordPixelsToWorld( width/2 - this.partShp.getCentroid().x, height/2- this.partShp.getCentroid().y));
-    bd.position.set(box2d.coordPixelsToWorld( width/2, height/2));
-/*  ^ [PROF. EVGHENI]
-    Penso que parte do problema está aqui porque na realidade a peça partShp,
-    não está no centro do ecrã. Apenas é desenhada com referência ao centro.
-    Acredito que é isto que depois deforma a rotação por causa da translação
-    do centro. Tentei solucionar com a linha a cima mas não foi suficiente.
-    */
+    //bd.position.set(box2d.coordPixelsToWorld( this.partShp.getCentroid().x, this.partShp.getCentroid().y));
+    bd.position.set(box2d.coordPixelsToWorld(0,0));
+
     body = box2d.createBody(bd);
 
 
@@ -89,7 +87,12 @@ class AnatomicPart {
     for( int i = 0 ; i < vertices.length; i++){
 
 
-      vertices[i] = box2d.coordPixelsToWorld(this.box[i].x ,this.box[i].y );
+      Vec2 b = new Vec2(this.box[i].x,this.box[i].y);
+      Vec2 corner = b.sub(new Vec2 (this.partShp.getCentroid().x,this.partShp.getCentroid().y));
+
+      //vertices[i] = box2d.vectorPixelsToWorld(corner);
+      vertices[i] = box2d.vectorPixelsToWorld(b);
+      println(corner);
       //vertices[i] = box2d.coordPixelsToWorld(this.box[i].x - this.partShp.getCentroid().x,this.box[i].y - this.partShp.getCentroid().y);
 
 
@@ -121,18 +124,20 @@ class AnatomicPart {
 
   void display() {
     Vec2 pos = box2d.getBodyPixelCoord(body);
+    //fill(0,200,20);
+    //ellipse(pos.x, pos.y,5,5);
     float a= body.getAngle();
 
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(-a);
 
-    //displayLeading();
+    displayLeading();
     fill(255);
     noStroke();
     //translate();
     //RG.shape(partShp,this.partShp.getCentroid().x, this.partShp.getCentroid().y);
-    partShp.draw();
+    RG.shape(partShp,0,0);
     //displayHandles();
     //displayJoinningPoints();
     popMatrix();
@@ -173,6 +178,11 @@ class AnatomicPart {
   }
 
   void connect(AnatomicPart friend){
+    if(dj!=null) {
+      box2d.world.destroyJoint(dj);
+      //Joint.destroy(dj); /#NOTA - Nenhum destas funções funcionou para desligar a Joint
+      //dj.destructor();
+    }
     DistanceJointDef djd = new DistanceJointDef();
     djd.bodyA = this.body;
     djd.bodyB = friend.body;
@@ -180,10 +190,15 @@ class AnatomicPart {
     //djd.localAnchorB.set(random(width),random(height));
 
     RPoint joint1 = this.joinningPoints.get( int( random( this.joinningPoints.size() ) ) );
-    println("abc");
-    println(joint1.x+300,joint1.y+300);
+
     RPoint joint2 = friend.joinningPoints.get( int( random( friend.joinningPoints.size() ) ) );
-    djd.initialize(this.body,friend.body,box2d.coordPixelsToWorld(joint1.x+300,joint1.y+300), box2d.coordPixelsToWorld(joint2.x+300,joint2.y+300));
+
+    Vec2 anc1 = box2d.vectorPixelsToWorld(joint1.x,joint1.y);
+    Vec2 anc2 = box2d.vectorPixelsToWorld(joint2.x,joint2.y);
+
+    djd.initialize(this.body,friend.body,this.body.getWorldPoint(anc1), friend.body.getWorldPoint(anc2));
+
+
     djd.length = box2d.scalarPixelsToWorld(0);
 
     djd.collideConnected=false;
@@ -192,13 +207,14 @@ class AnatomicPart {
     //djd.frequencyHz = 4.0;
     //djd.dampingRatio = 0.5;
 
-    DistanceJoint dj = (DistanceJoint) box2d.world.createJoint(djd);
+    dj = (DistanceJoint) box2d.world.createJoint(djd);
 
   }
 
 
   void shake(){
-    body.setTransform(box2d.coordPixelsToWorld(random(300,width-300),random(300,height-300)),int(random(8))*TAU/8);
+    body.setTransform(box2d.coordPixelsToWorld(0,0),int(random(8))*TAU/8);
+    //Esta função não funciona porque o centro da rotação não é o centro da peça
   }
 
   void follow(){
@@ -281,6 +297,27 @@ class AnatomicPart {
     return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
 
 
+  }
+
+  void showJoint() {
+    if (dj!=null) {
+
+      Vec2 ancA = new Vec2();
+      dj.getAnchorA(ancA);
+      ancA= box2d.coordWorldToPixels(ancA);
+
+      Vec2 ancB = new Vec2();
+      dj.getAnchorB(ancB);
+      ancB= box2d.coordWorldToPixels(ancB);
+
+      noStroke();
+      fill(200, 200, 0);
+      ellipse(ancA.x, ancA.y, 8, 8);
+      ellipse(ancB.x, ancB.y, 8, 8);
+      stroke(0);
+      line(ancA.x, ancA.y,ancB.x, ancB.y);
+
+    }
   }
 
 }
