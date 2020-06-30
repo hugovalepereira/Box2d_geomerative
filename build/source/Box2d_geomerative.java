@@ -39,13 +39,13 @@ Letter letter;
 
 
 
-AnatomicPart rato;
+//AnatomicPart rato;
 
 Box2DProcessing box2d;
 
 
 
-int grav = 0; // 1 ou 0; os Joints só funcionam com gravidade
+int grav = 1; // 1 ou 0; os Joints só funcionam com gravidade
 public void setup(){
 
   
@@ -63,10 +63,10 @@ public void setup(){
 
   letter= new Letter();
 
-  RShape u = RG.getEllipse(0,0,20,20);
+  //RShape u = RG.getEllipse(0,0,20,20);
   //println(u.getCentroid().x,u.getCentroid().y);
 
-  rato = new AnatomicPart(u);
+  //rato = new AnatomicPart(u);
 
 
 }
@@ -188,7 +188,7 @@ class AnatomicPart {
 
     Vec2[] vertices = new Vec2[4];
 
-
+    println("Vertices:");
     for( int i = 0 ; i < vertices.length; i++){
 
 
@@ -197,7 +197,7 @@ class AnatomicPart {
 
       //vertices[i] = box2d.vectorPixelsToWorld(corner);
       vertices[i] = box2d.vectorPixelsToWorld(b);
-      println(corner);
+      println(b);
       //vertices[i] = box2d.coordPixelsToWorld(this.box[i].x - this.partShp.getCentroid().x,this.box[i].y - this.partShp.getCentroid().y);
 
 
@@ -398,22 +398,18 @@ class AnatomicPart {
   }
   */
 
-  public String toString(){
-    return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
 
-
-  }
 
   public void showJoint() {
     if (dj!=null) {
 
       Vec2 ancA = new Vec2();
       dj.getAnchorA(ancA);
-      ancA= box2d.coordWorldToPixels(ancA);
+      ancA = box2d.coordWorldToPixels(ancA);
 
       Vec2 ancB = new Vec2();
       dj.getAnchorB(ancB);
-      ancB= box2d.coordWorldToPixels(ancB);
+      ancB = box2d.coordWorldToPixels(ancB);
 
       noStroke();
       fill(200, 200, 0);
@@ -423,6 +419,14 @@ class AnatomicPart {
       line(ancA.x, ancA.y,ancB.x, ancB.y);
 
     }
+  }
+
+
+
+  public String toString(){
+    return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
+
+
   }
 
 }
@@ -437,7 +441,7 @@ class Letter {
   Letter() {
     parts= new ArrayList<AnatomicPart>();
     RG.setPolygonizer(RG.ADAPTATIVE);
-    shp= RG.loadShape("p.svg");
+    shp= RG.loadShape("squareCircle.svg");
 
     shp.centerIn(g,200);
     shp.translate(width*0.5f,height*0.5f);

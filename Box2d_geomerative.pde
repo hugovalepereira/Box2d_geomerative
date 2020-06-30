@@ -13,7 +13,7 @@ Letter letter;
 
 
 
-AnatomicPart rato;
+//AnatomicPart rato;
 
 Box2DProcessing box2d;
 
@@ -37,10 +37,10 @@ void setup(){
 
   letter= new Letter();
 
-  RShape u = RG.getEllipse(0,0,20,20);
+  //RShape u = RG.getEllipse(0,0,20,20);
   //println(u.getCentroid().x,u.getCentroid().y);
 
-  rato = new AnatomicPart(u);
+  //rato = new AnatomicPart(u);
 
 
 }

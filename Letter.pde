@@ -9,7 +9,7 @@ class Letter {
   Letter() {
     parts= new ArrayList<AnatomicPart>();
     RG.setPolygonizer(RG.ADAPTATIVE);
-    shp= RG.loadShape("p.svg");
+    shp= RG.loadShape("squareCircle.svg");
 
     shp.centerIn(g,200);
     shp.translate(width*0.5,height*0.5);

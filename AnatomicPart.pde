@@ -83,7 +83,7 @@ class AnatomicPart {
 
     Vec2[] vertices = new Vec2[4];
 
-
+    println("Vertices:");
     for( int i = 0 ; i < vertices.length; i++){
 
 
@@ -92,7 +92,7 @@ class AnatomicPart {
 
       //vertices[i] = box2d.vectorPixelsToWorld(corner);
       vertices[i] = box2d.vectorPixelsToWorld(b);
-      println(corner);
+      println(b);
       //vertices[i] = box2d.coordPixelsToWorld(this.box[i].x - this.partShp.getCentroid().x,this.box[i].y - this.partShp.getCentroid().y);
 
 
@@ -293,22 +293,18 @@ class AnatomicPart {
   }
   */
 
-  String toString(){
-    return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
 
-
-  }
 
   void showJoint() {
     if (dj!=null) {
 
       Vec2 ancA = new Vec2();
       dj.getAnchorA(ancA);
-      ancA= box2d.coordWorldToPixels(ancA);
+      ancA = box2d.coordWorldToPixels(ancA);
 
       Vec2 ancB = new Vec2();
       dj.getAnchorB(ancB);
-      ancB= box2d.coordWorldToPixels(ancB);
+      ancB = box2d.coordWorldToPixels(ancB);
 
       noStroke();
       fill(200, 200, 0);
@@ -318,6 +314,14 @@ class AnatomicPart {
       line(ancA.x, ancA.y,ancB.x, ancB.y);
 
     }
+  }
+
+
+
+  String toString(){
+    return box2d.getBodyPixelCoord(body).x +" "+ box2d.getBodyPixelCoord(body).y;
+
+
   }
 
 }
