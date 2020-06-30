@@ -90,8 +90,8 @@ class AnatomicPart {
       Vec2 b = new Vec2(this.box[i].x,this.box[i].y);
       Vec2 corner = b.sub(new Vec2 (this.partShp.getCentroid().x,this.partShp.getCentroid().y));
 
-      //vertices[i] = box2d.vectorPixelsToWorld(corner);
-      vertices[i] = box2d.vectorPixelsToWorld(b);
+      //vertices[i] = box2d.vectorPixelsToWorld(corner); //utiliza os pontos em relação ao Centroid
+      vertices[i] = box2d.vectorPixelsToWorld(b); //utiliza os pontos originais. Com referencial no (0,0)
       println(b);
       //vertices[i] = box2d.coordPixelsToWorld(this.box[i].x - this.partShp.getCentroid().x,this.box[i].y - this.partShp.getCentroid().y);
 
