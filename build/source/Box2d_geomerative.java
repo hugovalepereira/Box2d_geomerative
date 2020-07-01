@@ -36,7 +36,7 @@ public class Box2d_geomerative extends PApplet {
 
 
 Letter letter;
-
+Letter letter2;
 
 
 //AnatomicPart rato;
@@ -45,7 +45,7 @@ Box2DProcessing box2d;
 
 
 
-int grav = 1; // 1 ou 0; os Joints só funcionam com gravidade
+int grav = 0; // 1 ou 0; os Joints só funcionam com gravidade
 public void setup(){
 
   
@@ -61,8 +61,8 @@ public void setup(){
 
 
 
-  letter= new Letter();
-
+  letter= new Letter("p.svg",0.4f,0.5f);
+  letter2= new Letter("i.svg",0.65f,0.51f);
   //RShape u = RG.getEllipse(0,0,20,20);
   //println(u.getCentroid().x,u.getCentroid().y);
 
@@ -81,6 +81,7 @@ public void draw(){
 
 
   letter.display();
+  letter2.display();
   //rato.follow();
   //rato.display();
 
@@ -99,8 +100,10 @@ public void draw(){
 public void keyPressed(){
   if(key=='r'|| key =='R'){
     letter.reconnect();
+    letter2.reconnect();
   } else if(key=='s'|| key =='S'){
     letter.shake();
+    letter2.shake();
   }
 }
 class AnatomicPart {
@@ -174,8 +177,9 @@ class AnatomicPart {
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
     //bd.position.set(box2d.coordPixelsToWorld( width/2 - this.partShp.getCentroid().x, height/2- this.partShp.getCentroid().y));
-    //bd.position.set(box2d.coordPixelsToWorld( this.partShp.getCentroid().x, this.partShp.getCentroid().y));
-    bd.position.set(box2d.coordPixelsToWorld(0,0));
+    bd.position.set(box2d.coordPixelsToWorld( this.partShp.getCentroid().x, this.partShp.getCentroid().y)); //Abordagem B
+
+    //bd.position.set(box2d.coordPixelsToWorld(0,0));  //Abordagem A - Funciona com restrições
 
     body = box2d.createBody(bd);
 
@@ -195,9 +199,9 @@ class AnatomicPart {
       Vec2 b = new Vec2(this.box[i].x,this.box[i].y);
       Vec2 corner = b.sub(new Vec2 (this.partShp.getCentroid().x,this.partShp.getCentroid().y));
 
-      //vertices[i] = box2d.vectorPixelsToWorld(corner);
-      vertices[i] = box2d.vectorPixelsToWorld(b);
-      println(b);
+      vertices[i] = box2d.vectorPixelsToWorld(corner); // Abordagem B - utiliza os pontos em relação ao Centroid
+      //vertices[i] = box2d.vectorPixelsToWorld(b); //Abordagem A - utiliza os pontos originais. Com referencial no (0,0)
+      println(vertices[i]);
       //vertices[i] = box2d.coordPixelsToWorld(this.box[i].x - this.partShp.getCentroid().x,this.box[i].y - this.partShp.getCentroid().y);
 
 
@@ -236,8 +240,9 @@ class AnatomicPart {
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(-a);
+    translate(-this.partShp.getCentroid().x,-this.partShp.getCentroid().y);
 
-    displayLeading();
+    displayLeading(true);
     fill(255);
     noStroke();
     //translate();
@@ -271,23 +276,32 @@ class AnatomicPart {
   }
 
 
-  private void displayLeading(){
-    noStroke();
-    fill(255,100);
-    beginShape();
-    for(RPoint p : box){
-      vertex(p.x,p.y);
+  private void displayLeading(boolean value){
+    if(value){
+      noStroke();
+      fill(255,100);
+      beginShape();
+      for(RPoint p : box){
+        vertex(p.x,p.y);
+      }
+      endShape();
     }
-    endShape();
-
   }
 
-  public void connect(AnatomicPart friend){
+
+  public void destroyJoint(){
     if(dj!=null) {
       box2d.world.destroyJoint(dj);
+      println("ABC "+dj);
+      dj=null;
       //Joint.destroy(dj); /#NOTA - Nenhum destas funções funcionou para desligar a Joint
       //dj.destructor();
     }
+
+  }
+  public void connect(AnatomicPart friend){
+
+    destroyJoint(); // É desnecessário, apenas coloquei por segurança
     DistanceJointDef djd = new DistanceJointDef();
     djd.bodyA = this.body;
     djd.bodyB = friend.body;
@@ -298,9 +312,19 @@ class AnatomicPart {
 
     RPoint joint2 = friend.joinningPoints.get( PApplet.parseInt( random( friend.joinningPoints.size() ) ) );
 
-    Vec2 anc1 = box2d.vectorPixelsToWorld(joint1.x,joint1.y);
-    Vec2 anc2 = box2d.vectorPixelsToWorld(joint2.x,joint2.y);
+    Vec2 b1 = new Vec2(joint1.x,joint1.y);
+    Vec2 b2 = new Vec2(joint2.x,joint2.y);
+    println("B1: "+b1);
+    println("B2: "+b2);
+    Vec2 corner1 = b1.sub(new Vec2 (this.partShp.getCentroid().x,this.partShp.getCentroid().y));
+    Vec2 corner2 = b2.sub(new Vec2 (friend.partShp.getCentroid().x,friend.partShp.getCentroid().y));
+    println("Corner1: "+corner1);
+    println("Corner2: "+corner2);
+    Vec2 anc1 = box2d.vectorPixelsToWorld(corner1.x,corner1.y);
+    Vec2 anc2 = box2d.vectorPixelsToWorld(corner2.x,corner2.y);
 
+    println("Anc1: "+anc1);
+    println("Anc2: "+anc2);
     djd.initialize(this.body,friend.body,this.body.getWorldPoint(anc1), friend.body.getWorldPoint(anc2));
 
 
@@ -318,7 +342,7 @@ class AnatomicPart {
 
 
   public void shake(){
-    body.setTransform(box2d.coordPixelsToWorld(0,0),PApplet.parseInt(random(8))*TAU/8);
+    body.setTransform(box2d.coordPixelsToWorld(random(200,width-200),random(200,height-200)),PApplet.parseInt(random(8))*TAU/8);
     //Esta função não funciona porque o centro da rotação não é o centro da peça
   }
 
@@ -438,13 +462,13 @@ class Letter {
   RShape shp;
   RShape [] shpParts;
 
-  Letter() {
+  Letter(String file,float w,float h) {
     parts= new ArrayList<AnatomicPart>();
     RG.setPolygonizer(RG.ADAPTATIVE);
-    shp= RG.loadShape("squareCircle.svg");
+    shp= RG.loadShape(file);
 
     shp.centerIn(g,200);
-    shp.translate(width*0.5f,height*0.5f);
+    shp.translate(width*w,height*h);
     shpParts = shp.children;
 
     for(RShape ap: shpParts){
@@ -472,6 +496,7 @@ class Letter {
 
   public void shake(){
     for(AnatomicPart ap : parts){
+      ap.destroyJoint();
       ap.shake();
       println(ap);
     }

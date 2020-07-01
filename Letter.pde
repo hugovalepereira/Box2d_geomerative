@@ -6,13 +6,13 @@ class Letter {
   RShape shp;
   RShape [] shpParts;
 
-  Letter() {
+  Letter(String file,float w,float h) {
     parts= new ArrayList<AnatomicPart>();
     RG.setPolygonizer(RG.ADAPTATIVE);
-    shp= RG.loadShape("squareCircle.svg");
+    shp= RG.loadShape(file);
 
     shp.centerIn(g,200);
-    shp.translate(width*0.5,height*0.5);
+    shp.translate(width*w,height*h);
     shpParts = shp.children;
 
     for(RShape ap: shpParts){
@@ -40,6 +40,7 @@ class Letter {
 
   void shake(){
     for(AnatomicPart ap : parts){
+      ap.destroyJoint();
       ap.shake();
       println(ap);
     }

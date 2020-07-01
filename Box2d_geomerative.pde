@@ -10,7 +10,7 @@ import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
 
 Letter letter;
-
+Letter letter2;
 
 
 //AnatomicPart rato;
@@ -35,8 +35,8 @@ void setup(){
 
 
 
-  letter= new Letter();
-
+  letter= new Letter("p.svg",0.4,0.5);
+  letter2= new Letter("i.svg",0.65,0.51);
   //RShape u = RG.getEllipse(0,0,20,20);
   //println(u.getCentroid().x,u.getCentroid().y);
 
@@ -55,6 +55,7 @@ void draw(){
 
 
   letter.display();
+  letter2.display();
   //rato.follow();
   //rato.display();
 
@@ -73,7 +74,9 @@ void draw(){
 void keyPressed(){
   if(key=='r'|| key =='R'){
     letter.reconnect();
+    letter2.reconnect();
   } else if(key=='s'|| key =='S'){
     letter.shake();
+    letter2.shake();
   }
 }
