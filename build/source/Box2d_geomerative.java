@@ -45,7 +45,7 @@ Box2DProcessing box2d;
 
 
 
-int grav = 0; // 1 ou 0; os Joints só funcionam com gravidade
+int grav = 1; // 1 ou 0; os Joints só funcionam com gravidade
 public void setup(){
 
   
